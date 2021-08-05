@@ -104,9 +104,67 @@ FROM departments d,
     employees e,
     locations l,
     countries c,
-    region g
+    regions r
 WHERE d.manager_id = e.employee_id AND
     d.location_id = l.location_id AND
     l.country_id = c.country_id AND
     c.region_id = r.region_id
 ORDER BY d.department_id;
+
+-- Q9 : OUTER JOIN + SELF JOIN
+SELECT
+    e.employee_id,
+    e.first_name,
+    department_name,
+    m.first_name
+FROM employees e LEFT OUTER JOIN departments d
+    ON e.department_id = d.department_id,
+    employees m
+WHERE e.manager_id = m.employee_id;
+
+----------
+-- SUBQUERY
+----------
+-- 하나의 질의문 안에 다른 질의문을 포함하는 형태
+-- 전체 사원 중, 급여의 중앙값보다 많이 받는 사원
+
+-- 1. 급여의 중앙값?
+SELECT MEDIAN(salary) FROM employees;   --  6200
+-- 2. 6200보다 많이 받는 사원 쿼리
+SELECT first_name, salary FROM employees WHERE salary > 6200;
+
+-- 3. 두 쿼리를 합친다.
+SELECT first_name, salary FROM employees
+WHERE salary > (SELECT MEDIAN(salary) FROM employees);
+
+-- Den 보다 늦게 입사한 사원들
+-- 1. Den 입사일 쿼리
+SELECT hire_date FROM employees WHERE first_name = 'Den'; -- 02/12/07
+-- 2. 특정 날짜 이후 입사한 사원 쿼리
+SELECT first_name, hire_date FROM employees WHERE hire_date >= '02/12/07';
+-- 3. 두 쿼리를 합친다.
+SELECT first_name, hire_date 
+FROM employees 
+WHERE hire_date >= (SELECT hire_date FROM employees WHERE first_name = 'Den');
+
+-- 다중행 서브 쿼리
+-- 서브 쿼리의 결과 레코드가 둘 이상이 나올 때는 단일행 연산자를 사용할 수 없다
+-- IN, ANY, ALL, EXISTS 등 집합 연산자를 활용
+SELECT salary FROM employees WHERE department_id = 110; -- 2 ROW
+
+SELECT first_name, salary FROM employees
+WHERE salary = (SELECT salary FROM employees WHERE department_id = 110); -- ERROR
+
+-- 결과가 다중행이면 집합 연산자를 활용
+-- salary = 120008 OR salary = 8300
+SELECT first_name, salary FROM employees
+WHERE salary IN (SELECT salary FROM employees WHERE department_id = 110);
+
+-- ALL(AND)
+-- salary > 12008 AND salary > 8300
+SELECT first_name, salary FROM employees
+WHERE salary > ALL (SELECT salary FROM employees WHERE department_id = 110);
+
+-- ANY(OR)
+SELECT first_name, salary FROM employees
+WHERE salary > ANY (SELECT salary FROM employees WHERE department_id = 110);
