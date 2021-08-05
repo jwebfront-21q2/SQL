@@ -166,5 +166,76 @@ SELECT first_name, salary FROM employees
 WHERE salary > ALL (SELECT salary FROM employees WHERE department_id = 110);
 
 -- ANY(OR)
+-- salary > 12008 OR salary > 8300
 SELECT first_name, salary FROM employees
 WHERE salary > ANY (SELECT salary FROM employees WHERE department_id = 110);
+
+-- 각 부서별로 최고 급여를 받는 사원을 출력
+-- 1. 각 부서의 최고 급여 확인 쿼리
+SELECT department_id, MAX(salary) FROM employees
+GROUP BY department_id;
+
+-- 2. 서브 쿼리의 결과 (department_id, MAX(salary))
+SELECT department_id, employee_id, first_name, salary
+FROM employees
+WHERE (department_id, salary) IN (SELECT department_id, 
+                                        MAX(salary) 
+                                    FROM employees
+                                    GROUP BY department_id)
+ORDER BY department_id;
+
+-- 서브쿼리와 조인
+SELECT e.department_id, e.employee_id, e.first_name, e.salary 
+FROM employees e, (SELECT department_id, MAX(salary) salary FROM employees 
+                    GROUP BY department_id) sal
+WHERE e.department_id = sal.department_id AND
+    e.salary = sal.salary
+ORDER BY e.department_id;
+                    
+-- Correlated Query
+-- 외부 쿼리와 내부 쿼리가 연관관계를 맺는 쿼리
+SELECT e.department_id, e.employee_id, e.first_name, e.salary 
+FROM employees e
+WHERE e.salary = (SELECT MAX(salary) FROM employees
+                    WHERE department_id = e.department_id)
+ORDER BY e.department_id;
+
+-- Top-K Query
+-- ROWNUM: 레코드의 순서를 가리키는 가상의 컬럼(Pseudo)
+
+-- 2007년 입사자 중에서 급여 순위 5위까지 출력
+SELECT * FROM employees
+        WHERE hire_date LIKE '07%'
+        ORDER BY salary DESC, first_name;
+
+SELECT rownum, first_name
+FROM (SELECT * FROM employees
+        WHERE hire_date LIKE '07%'
+        ORDER BY salary DESC, first_name)
+WHERE rownum <= 5;
+
+-- 집합 연산: SET
+-- UNION : 합집합, UNION ALL : 합집합, 중복 요소 체크 안함
+-- INTERSECT : 교집합
+-- MINUS : 차집합
+
+-- 05/01/01 이전 입사자 쿼리
+SELECT first_name, salary, hire_date FROM employees WHERE hire_date < '05/01/01'; -- 24
+-- 급여를 12000 초과 수령 사원
+SELECT first_name, salary, hire_date FROM employees WHERE salary > 12000; -- 8
+
+SELECT first_name, salary, hire_date FROM employees WHERE hire_date < '05/01/01'
+UNION -- 합집합
+SELECT first_name, salary, hire_date FROM employees WHERE salary > 12000;   -- 26
+
+SELECT first_name, salary, hire_date FROM employees WHERE hire_date < '05/01/01'
+UNION ALL -- 합집합: 중복 허용
+SELECT first_name, salary, hire_date FROM employees WHERE salary > 12000;   -- 32
+
+SELECT first_name, salary, hire_date FROM employees WHERE hire_date < '05/01/01'
+INTERSECT -- 교집합(AND)
+SELECT first_name, salary, hire_date FROM employees WHERE salary > 12000;   -- 6
+
+SELECT first_name, salary, hire_date FROM employees WHERE hire_date < '05/01/01'
+MINUS -- 차집합
+SELECT first_name, salary, hire_date FROM employees WHERE salary > 12000;   -- 18
