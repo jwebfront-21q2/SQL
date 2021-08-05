@@ -37,3 +37,18 @@ SELECT * FROM DBA_USERS WHERE username = 'C##BITUSER';
 GRANT create session TO C##BITUSER;
 
 -- 일반적으로 CONNECT, RESOURCE 롤을 부여하면 일반사용자의 역할 수행 가능
+GRANT connect, resource TO C##BITUSER;
+
+-- Oracle 12 이후로는 임의로 TABLESPACE를 할당 해 줘야 한다.
+ALTER USER C##BITUSER           -- 사용자 정보 수정
+    DEFAULT TABLESPACE USERS    -- 기본 테이블 스페이스를 USERS 에 지정
+    QUOTA UNLIMITED ON USERS;   --  사용 용량 지정
+    
+-- 객체 권한 부여
+-- C##BITUSER 사용자에게 HR.EMPLOYEES를 SELECT 할 수 있는 권한 부여
+GRANT select ON HR.EMPLOYEES TO C##BITUSER;
+-- 객체 권한 회수
+REVOKE select ON HR.EMPLOYEES FROM C##BITUSER;
+GRANT select ON HR.EMPLOYEES TO C##BITUSER;
+-- 전체 권한 부여시 
+-- GRANT all privileges ...
