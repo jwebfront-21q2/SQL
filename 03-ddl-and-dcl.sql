@@ -103,6 +103,13 @@ DESC author;
 DESC book;
 ALTER TABLE book DROP COLUMN author;
 
+-- author 테이블 참조를 위한 컬럼 author_id 추가
+ALTER TABLE book 
+ADD (author_id NUMBER(10));
 
+-- book 테이블의 book_id도 NUMBER(10)으로 변경
+ALTER TABLE book
+MODIFY (book_id NUMBER(10));
 
+DESC book;
 
