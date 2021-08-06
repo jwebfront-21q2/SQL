@@ -111,3 +111,51 @@ FROM employees e,
         FROM employees GROUP BY department_id ) t
 WHERE e.department_id = t.department_id AND
     e.salary > t.salary;
+    
+-- Q8
+-- 쿼리 1
+SELECT ROWNUM,
+    employee_id,
+    first_name,
+    salary
+    hire_date
+FROM employees
+ORDER BY hire_date asc;
+
+-- 쿼리 2
+SELECT rownum rn,
+    employee_id,
+    first_name,
+    salary,
+    hire_date
+FROM ( SELECT
+            employee_id,
+            first_name,
+            salary,
+            hire_date
+        FROM employees
+        ORDER BY hire_date asc
+    );
+-- 최종 쿼리
+
+SELECT rn,
+    employee_id,
+    first_name,
+    salary,
+    hire_date
+FROM (
+    SELECT rownum rn,
+        employee_id,
+        first_name,
+        salary,
+        hire_date
+    FROM ( SELECT
+                employee_id,
+                first_name,
+                salary,
+                hire_date
+            FROM employees
+            ORDER BY hire_date asc
+        )
+    )
+WHERE rn BETWEEN 11 AND 15;
